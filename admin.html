@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Painel Admin - AVSEG 2025</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #000, #ffd60a);
+      color: white;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    h1 { margin-bottom: 20px; }
+    table {
+      width: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      border-collapse: collapse;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+    th {
+      background: rgba(255,255,255,0.2);
+      font-weight: bold;
+    }
+    tr:hover { background: rgba(255,255,255,0.1); }
+    .contador {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    button {
+      margin-top: 20px;
+      background-color: #ffd60a;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover { background-color: #ffea00; }
+    #login {
+      background: rgba(255,255,255,0.15);
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    input {
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      margin-top: 10px;
+      font-size: 1rem;
+      width: 220px;
+    }
+    #painel { display: none; }
+  </style>
+</head>
+<body>
+  <div id="login">
+    <h2>🔐 Acesso Restrito</h2>
+    <p>Digite a senha para acessar o painel:</p>
+    <input type="password" id="senha" placeholder="Senha">
+    <br />
+    <button id="entrarBtn">Entrar</button>
+    <p id="erro" style="color: #ff6b6b; margin-top: 10px;"></p>
+  </div>
+
+  <div id="painel">
+    <h1>Painel de Confirmações 🎉</h1>
+    <table>
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Telefone</th>
+          <th>Acompanhante</th>
+        </tr>
+      </thead>
+      <tbody id="lista">
+        <tr><td colspan="3">Carregando...</td></tr>
+      </tbody>
+    </table>
+
+    <div class="contador">
+      <p>Total de confirmações: <span id="totalConfirmados">0</span></p>
+      <p>Total de pessoas (incluindo acompanhantes): <span id="totalPessoas">0</span></p>
+    </div>
+
+    <button id="baixarExcel">📥 Baixar lista (Excel)</button>
+    <button onclick="window.location.href='index.html'">Voltar</button>
+  </div>
+
+  <!-- Firebase + Excel -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
+      authDomain: "avseg-confraternizacao.firebaseapp.com",
+      projectId: "avseg-confraternizacao",
+      storageBucket: "avseg-confraternizacao.appspot.com",
+      messagingSenderId: "1022261557627",
+      appId: "1:1022261557627:web:ef69e37be5c367411665de"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const lista = document.getElementById('lista');
+    const totalConfirmados = document.getElementById('totalConfirmados');
+    const totalPessoas = document.getElementById('totalPessoas');
+    const painel = document.getElementById('painel');
+    const login = document.getElementById('login');
+    const senhaInput = document.getElementById('senha');
+    const entrarBtn = document.getElementById('entrarBtn');
+    const erro = document.getElementById('erro');
+    const baixarExcel = document.getElementById('baixarExcel');
+
+    const SENHA_CORRETA = "avseg2025";
+    let dadosConfirmados = [];
+
+    entrarBtn.addEventListener("click", () => {
+      const senha = senhaInput.value.trim();
+      if (senha === SENHA_CORRETA) {
+        login.style.display = "none";
+        painel.style.display = "block";
+        carregarConfirmacoes();
+      } else {
+        erro.textContent = "Senha incorreta. Tente novamente.";
+      }
+    });
+
+    async function carregarConfirmacoes() {
+      try {
+        const q = query(collection(db, "confirmados"), orderBy("data", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        lista.innerHTML = "";
+        let total = 0;
+        let totalComAcompanhantes = 0;
+        dadosConfirmados = [];
+
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          const nome = data.nome || "-";
+          const telefone = data.telefone || "-";
+          const acompanhante = data.acompanhante === "Sim"
+            ? `Sim (${data.nomeAcompanhante || "sem nome"})`
+            : "Não";
+
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${nome}</td>
+            <td>${telefone}</td>
+            <td>${acompanhante}</td>
+          `;
+          lista.appendChild(row);
+
+          total++;
+          totalComAcompanhantes += (data.acompanhante === "Sim") ? 2 : 1;
+
+          dadosConfirmados.push({
+            Nome: nome,
+            Telefone: telefone,
+            Acompanhante: acompanhante
+          });
+        });
+
+        totalConfirmados.textContent = total;
+        totalPessoas.textContent = totalComAcompanhantes;
+
+        if (total === 0) {
+          lista.innerHTML = "<tr><td colspan='3'>Nenhuma confirmação ainda.</td></tr>";
+        }
+
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        lista.innerHTML = "<tr><td colspan='3'>Erro ao carregar confirmações.</td></tr>";
+      }
+    }
+
+    baixarExcel.addEventListener("click", () => {
+      if (dadosConfirmados.length === 0) {
+        alert("Nenhum dado para exportar!");
+        return;
+      }
+
+      const planilha = XLSX.utils.json_to_sheet(dadosConfirmados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, planilha, "Confirmações");
+      XLSX.writeFile(wb, "confirmacoes_avseg2025.xlsx");
+    });
+  </script>
+</body>
+</html>

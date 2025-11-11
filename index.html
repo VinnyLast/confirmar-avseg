@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confraternização AVSEG 2025</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #000, #ffd60a);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      font-size: 2.3rem;
+      font-weight: 600;
+    }
+
+    form {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 25px 30px;
+      border-radius: 14px;
+      backdrop-filter: blur(8px);
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    button {
+      background-color: #ffd60a;
+      color: #000;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background-color: #ffea00;
+      transform: scale(1.03);
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 1rem;
+      color: #fff;
+      min-height: 24px;
+    }
+
+    .admin-btn {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: rgba(255,255,255,0.1);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      opacity: 0.3;
+      transition: 0.3s;
+    }
+
+    .admin-btn:hover {
+      opacity: 1;
+      background: rgba(255,255,255,0.2);
+    }
+  </style>
+</head>
+<body>
+  <h1>Confraternização AVSEG 2025 🎉</h1>
+
+  <button class="admin-btn" title="Acesso restrito" onclick="window.location.href='admin.html'">⚙️</button>
+
+  <form id="form">
+    <input type="text" id="nome" placeholder="Seu nome completo" required>
+    <input type="tel" id="telefone" placeholder="DDD + número (ex: 11999999999)" maxlength="11" inputmode="numeric" pattern="[0-9]*" required>
+
+    <label for="acompanhante">Vai levar acompanhante?</label>
+    <select id="acompanhante" required>
+      <option value="Não">Não</option>
+      <option value="Sim">Sim</option>
+    </select>
+
+    <input type="text" id="nomeAcompanhante" placeholder="Nome do acompanhante (opcional)" style="display:none;">
+
+    <button type="submit">Confirmar presença</button>
+  </form>
+
+  <p class="msg" id="mensagem"></p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      addDoc, 
+      getDocs, 
+      query, 
+      where,
+      updateDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
+      authDomain: "avseg-confraternizacao.firebaseapp.com",
+      projectId: "avseg-confraternizacao",
+      storageBucket: "avseg-confraternizacao.appspot.com",
+      messagingSenderId: "1022261557627",
+      appId: "1:1022261557627:web:ef69e37be5c367411665de"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const form = document.getElementById('form');
+    const msg = document.getElementById('mensagem');
+    const acompanhanteSelect = document.getElementById('acompanhante');
+    const nomeAcompanhanteInput = document.getElementById('nomeAcompanhante');
+    const telefoneInput = document.getElementById('telefone');
+
+    // Mostrar campo acompanhante
+    acompanhanteSelect.addEventListener('change', () => {
+      nomeAcompanhanteInput.style.display = (acompanhanteSelect.value === 'Sim') ? 'block' : 'none';
+    });
+
+    // Permitir só números no campo de telefone
+    telefoneInput.addEventListener('input', () => {
+      telefoneInput.value = telefoneInput.value.replace(/\D/g, '').slice(0, 11);
+    });
+
+    // Formatar telefone para exibição
+    function formatarTelefone(telefone) {
+      const n = telefone.replace(/\D/g, "");
+      if (n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
+      if (n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
+      return telefone;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      msg.textContent = "Verificando...";
+      
+      const nome = document.getElementById('nome').value.trim();
+      const telefoneRaw = document.getElementById('telefone').value.trim();
+      const telefone = formatarTelefone(telefoneRaw);
+      const acompanhante = acompanhanteSelect.value;
+      const nomeAcompanhante = nomeAcompanhanteInput.value.trim();
+
+      if (!nome || telefoneRaw.length < 10) {
+        msg.textContent = 'Por favor, preencha todos os campos corretamente.';
+        return;
+      }
+
+      try {
+        // Verificar duplicidade
+        const q1 = query(collection(db, "confirmados"), where("telefone", "==", telefone));
+        const snap = await getDocs(q1);
+
+        if (!snap.empty) {
+          const docExistente = snap.docs[0];
+          await updateDoc(doc(db, "confirmados", docExistente.id), {
+            nome,
+            telefone,
+            acompanhante,
+            nomeAcompanhante: acompanhante === "Sim" ? nomeAcompanhante : "",
+            atualizadoEm: new Date().toISOString()
+          });
+          msg.textContent = "🔄 Você já havia confirmado, mas seus dados foram atualizados com sucesso!";
+        } else {
+          await addDoc(collection(db, "confirmados"), {
+            nome,
+            telefone,
+            acompanhante,
+            nomeAcompanhante: acompanhante === "Sim" ? nomeAcompanhante : "",
+            data: new Date().toISOString()
+          });
+          msg.textContent = `🎉 Obrigado, ${nome}! Sua presença foi confirmada.`;
+        }
+
+        form.reset();
+        nomeAcompanhanteInput.style.display = 'none';
+
+      } catch (error) {
+        console.error("Erro ao salvar:", error);
+        msg.textContent = "❌ Ocorreu um erro ao confirmar. Tente novamente.";
+      }
+    });
+  </script>
+</body>
+</html>
