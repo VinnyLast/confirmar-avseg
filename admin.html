@@ -6,6 +6,24 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - Confraternização AVSEG 2025</title>
   <style>
+@font-face {
+  font-family: 'LemonMilk';
+  src: url('fonts/LEMONMILK-Bold.otf') format('opentype');
+  font-weight: bold;
+}
+
+/* Apenas títulos e botões com LemonMilk */
+h1 {
+  font-family: 'LemonMilk', sans-serif;
+}
+
+/* Inputs e selects mantêm a fonte padrão */
+input, select {
+  font-family: inherit; /* herda a fonte padrão do body */
+}
+
+</style>
+  <style>
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #000, #ffd60a);
@@ -152,7 +170,7 @@
   </div>
 
   <div id="conteudo" style="display:none;">
-    <h1>🎉 Painel de Confirmações - AVSEG 2025</h1>
+    <h1> Painel de Confirmações - AVSEG 2025</h1>
 
     <div id="totais">
       ✅ Total de confirmações: <span id="contador">0</span><br>
