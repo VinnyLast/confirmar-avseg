@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="favicon.png">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Confraternização AVSEG 2025</title>
@@ -95,125 +96,144 @@
   </style>
 </head>
 <body>
-  <h1>Confraternização AVSEG 2025 🎉</h1>
+  <h1>CONFRATERNIZAÇÃO AVSEG 2025 🎉</h1>
 
   <button class="admin-btn" title="Acesso restrito" onclick="window.location.href='admin.html'">⚙️</button>
 
   <form id="form">
-    <input type="text" id="nome" placeholder="Seu nome completo" required>
-    <input type="tel" id="telefone" placeholder="DDD + número (ex: 11999999999)" maxlength="11" inputmode="numeric" pattern="[0-9]*" required>
+  <input type="text" id="nome" placeholder="Seu nome completo" required>
+  
+  <input 
+    type="tel" 
+    id="telefone" 
+    placeholder="DDD + número (apenas números)" 
+    maxlength="11" 
+    required 
+    pattern="\d{10,11}"
+  >
 
-    <label for="acompanhante">Vai levar acompanhante?</label>
-    <select id="acompanhante" required>
-      <option value="Não">Não</option>
-      <option value="Sim">Sim</option>
-    </select>
+  <label for="acompanhante">Vai levar acompanhante?</label>
+  <select id="acompanhante" required>
+    <option value="">Selecione</option>
+    <option value="não">Não</option>
+    <option value="sim">Sim</option>
+  </select>
 
-    <input type="text" id="nomeAcompanhante" placeholder="Nome do acompanhante (opcional)" style="display:none;">
+  <input 
+    type="text" 
+    id="nomeAcompanhante" 
+    placeholder="Nome do acompanhante" 
+    style="display:none;"
+  >
 
-    <button type="submit">Confirmar presença</button>
-  </form>
+  <button type="submit">Confirmar presença</button>
+</form>
 
-  <p class="msg" id="mensagem"></p>
+<p class="msg" id="mensagem"></p>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      addDoc, 
-      getDocs, 
-      query, 
-      where,
-      updateDoc,
-      doc
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    query, 
+    where 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
-      authDomain: "avseg-confraternizacao.firebaseapp.com",
-      projectId: "avseg-confraternizacao",
-      storageBucket: "avseg-confraternizacao.appspot.com",
-      messagingSenderId: "1022261557627",
-      appId: "1:1022261557627:web:ef69e37be5c367411665de"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
+    authDomain: "avseg-confraternizacao.firebaseapp.com",
+    projectId: "avseg-confraternizacao",
+    storageBucket: "avseg-confraternizacao.appspot.com",
+    messagingSenderId: "1022261557627",
+    appId: "1:1022261557627:web:ef69e37be5c367411665de"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const form = document.getElementById('form');
-    const msg = document.getElementById('mensagem');
-    const acompanhanteSelect = document.getElementById('acompanhante');
-    const nomeAcompanhanteInput = document.getElementById('nomeAcompanhante');
-    const telefoneInput = document.getElementById('telefone');
+  const form = document.getElementById('form');
+  const msg = document.getElementById('mensagem');
+  const acompanhanteSelect = document.getElementById('acompanhante');
+  const nomeAcompanhanteInput = document.getElementById('nomeAcompanhante');
 
-    // Mostrar campo acompanhante
-    acompanhanteSelect.addEventListener('change', () => {
-      nomeAcompanhanteInput.style.display = (acompanhanteSelect.value === 'Sim') ? 'block' : 'none';
-    });
+  // Mostrar campo do acompanhante só se escolher "Sim"
+  acompanhanteSelect.addEventListener('change', () => {
+    if (acompanhanteSelect.value === 'sim') {
+      nomeAcompanhanteInput.style.display = 'block';
+      nomeAcompanhanteInput.required = true;
+    } else {
+      nomeAcompanhanteInput.style.display = 'none';
+      nomeAcompanhanteInput.required = false;
+      nomeAcompanhanteInput.value = '';
+    }
+  });
 
-    // Permitir só números no campo de telefone
-    telefoneInput.addEventListener('input', () => {
-      telefoneInput.value = telefoneInput.value.replace(/\D/g, '').slice(0, 11);
-    });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-    // Formatar telefone para exibição
-    function formatarTelefone(telefone) {
-      const n = telefone.replace(/\D/g, "");
-      if (n.length === 11) return `(${n.slice(0,2)}) ${n.slice(2,7)}-${n.slice(7)}`;
-      if (n.length === 10) return `(${n.slice(0,2)}) ${n.slice(2,6)}-${n.slice(6)}`;
-      return telefone;
+    let nome = document.getElementById('nome').value.trim();
+    let telefone = document.getElementById('telefone').value.trim().replace(/\D/g, '');
+    const acompanhante = acompanhanteSelect.value;
+    const nomeAcompanhante = nomeAcompanhanteInput.value.trim();
+
+    if (!nome || !telefone) {
+      msg.textContent = 'Por favor, preencha todos os campos obrigatórios.';
+      return;
     }
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = "Verificando...";
-      
-      const nome = document.getElementById('nome').value.trim();
-      const telefoneRaw = document.getElementById('telefone').value.trim();
-      const telefone = formatarTelefone(telefoneRaw);
-      const acompanhante = acompanhanteSelect.value;
-      const nomeAcompanhante = nomeAcompanhanteInput.value.trim();
+    // Formatar telefone (xx) xxxxx-xxxx
+    if (telefone.length === 11) {
+      telefone = `(${telefone.slice(0, 2)}) ${telefone.slice(2, 7)}-${telefone.slice(7)}`;
+    } else if (telefone.length === 10) {
+      telefone = `(${telefone.slice(0, 2)}) ${telefone.slice(2, 6)}-${telefone.slice(6)}`;
+    } else {
+      msg.textContent = 'Número inválido. Digite um número de celular válido.';
+      return;
+    }
 
-      if (!nome || telefoneRaw.length < 10) {
-        msg.textContent = 'Por favor, preencha todos os campos corretamente.';
-        return;
-      }
+    // Impedir duplicatas (nome OU telefone já confirmados)
+    const q = query(
+      collection(db, "confirmados"),
+      where("nome", "==", nome)
+    );
+    const q2 = query(
+      collection(db, "confirmados"),
+      where("telefone", "==", telefone)
+    );
 
-      try {
-        // Verificar duplicidade
-        const q1 = query(collection(db, "confirmados"), where("telefone", "==", telefone));
-        const snap = await getDocs(q1);
+    const [snap1, snap2] = await Promise.all([getDocs(q), getDocs(q2)]);
+    if (!snap1.empty || !snap2.empty) {
+      msg.textContent = "❗ Você já confirmou presença anteriormente.";
+      return;
+    }
 
-        if (!snap.empty) {
-          const docExistente = snap.docs[0];
-          await updateDoc(doc(db, "confirmados", docExistente.id), {
-            nome,
-            telefone,
-            acompanhante,
-            nomeAcompanhante: acompanhante === "Sim" ? nomeAcompanhante : "",
-            atualizadoEm: new Date().toISOString()
-          });
-          msg.textContent = "🔄 Você já havia confirmado, mas seus dados foram atualizados com sucesso!";
-        } else {
-          await addDoc(collection(db, "confirmados"), {
-            nome,
-            telefone,
-            acompanhante,
-            nomeAcompanhante: acompanhante === "Sim" ? nomeAcompanhante : "",
-            data: new Date().toISOString()
-          });
-          msg.textContent = `🎉 Obrigado, ${nome}! Sua presença foi confirmada.`;
-        }
+    // Verificação do acompanhante
+    if (acompanhante === 'sim' && !nomeAcompanhante) {
+      msg.textContent = 'Por favor, informe o nome do acompanhante.';
+      return;
+    }
 
-        form.reset();
-        nomeAcompanhanteInput.style.display = 'none';
+    try {
+      await addDoc(collection(db, "confirmados"), {
+        nome,
+        telefone,
+        acompanhante,
+        nomeAcompanhante: nomeAcompanhante || null,
+        data: new Date().toISOString()
+      });
 
-      } catch (error) {
-        console.error("Erro ao salvar:", error);
-        msg.textContent = "❌ Ocorreu um erro ao confirmar. Tente novamente.";
-      }
-    });
-  </script>
+      msg.textContent = `🎉 Obrigado, ${nome}! Sua presença foi confirmada.`;
+      form.reset();
+      nomeAcompanhanteInput.style.display = 'none';
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      msg.textContent = "❌ Ocorreu um erro ao confirmar. Tente novamente.";
+    }
+  });
+</script>
+
 </body>
 </html>

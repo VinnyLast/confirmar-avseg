@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <link rel="icon" href="favicon.png">
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Painel Admin - AVSEG 2025</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Admin - Confraternização AVSEG 2025</title>
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -13,105 +14,201 @@
       padding: 20px;
       text-align: center;
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
     }
-    h1 { margin-bottom: 20px; }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    #totais {
+      background: rgba(255, 255, 255, 0.15);
+      padding: 15px 25px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 25px;
+      font-weight: bold;
+      text-align: left;
+      line-height: 1.8;
+    }
+
     table {
       width: 100%;
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
       border-collapse: collapse;
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
+      border-radius: 12px;
       overflow: hidden;
+      backdrop-filter: blur(6px);
     }
+
     th, td {
       padding: 12px;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 0.95rem;
     }
+
     th {
-      background: rgba(255,255,255,0.2);
-      font-weight: bold;
-    }
-    tr:hover { background: rgba(255,255,255,0.1); }
-    .contador {
-      margin-top: 20px;
-      font-size: 1.2rem;
-      font-weight: 600;
-    }
-    button {
-      margin-top: 20px;
-      background-color: #ffd60a;
+      background: rgba(255, 214, 10, 0.3);
       color: #000;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .voltar {
+      display: inline-block;
+      margin-top: 30px;
+      background: #ffd60a;
+      color: #000;
+      padding: 10px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .voltar:hover {
+      background: #ffea00;
+    }
+
+    .btn-excluir {
+      background: #ff4b4b;
+      border: none;
+      color: white;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .btn-excluir:hover {
+      background: #ff1a1a;
+    }
+
+    #baixarExcel {
+      margin-left: 10px;
+      background: #00c853;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    #baixarExcel:hover {
+      background: #00e676;
+    }
+
+    /* Tela de senha */
+    #senhaContainer {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #000, #ffd60a);
+    }
+
+    #senhaContainer input {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      width: 200px;
+      text-align: center;
+      font-size: 1rem;
+      margin-bottom: 10px;
+    }
+
+    #senhaContainer button {
+      background: #ffd60a;
       border: none;
       padding: 10px 20px;
       border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.3s;
     }
-    button:hover { background-color: #ffea00; }
-    #login {
-      background: rgba(255,255,255,0.15);
-      padding: 30px;
-      border-radius: 12px;
-      text-align: center;
-      backdrop-filter: blur(8px);
+
+    #senhaContainer button:hover {
+      background: #ffea00;
     }
-    input {
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      margin-top: 10px;
-      font-size: 1rem;
-      width: 220px;
-    }
-    #painel { display: none; }
   </style>
 </head>
 <body>
-  <div id="login">
-    <h2>🔐 Acesso Restrito</h2>
-    <p>Digite a senha para acessar o painel:</p>
-    <input type="password" id="senha" placeholder="Senha">
-    <br />
+  <div id="senhaContainer">
+    <h2>🔒 Acesso restrito</h2>
+    <input type="password" id="senhaInput" placeholder="Digite a senha">
     <button id="entrarBtn">Entrar</button>
-    <p id="erro" style="color: #ff6b6b; margin-top: 10px;"></p>
+    <p id="erroSenha" style="color:red; display:none;">Senha incorreta!</p>
   </div>
 
-  <div id="painel">
-    <h1>Painel de Confirmações 🎉</h1>
+  <div id="conteudo" style="display:none;">
+    <h1>🎉 Painel de Confirmações - AVSEG 2025</h1>
+
+    <div id="totais">
+      ✅ Total de confirmações: <span id="contador">0</span><br>
+      👥 Total de pessoas (incluindo acompanhantes): <span id="totalPessoas">0</span><br>
+      📥 <button id="baixarExcel">Baixar lista (Excel)</button>
+    </div>
+
     <table>
       <thead>
         <tr>
           <th>Nome</th>
           <th>Telefone</th>
-          <th>Acompanhante</th>
+          <th>Acompanhante?</th>
+          <th>Nome do acompanhante</th>
+          <th>Data</th>
+          <th>Ação</th>
         </tr>
       </thead>
-      <tbody id="lista">
-        <tr><td colspan="3">Carregando...</td></tr>
-      </tbody>
+      <tbody id="tabela"></tbody>
     </table>
 
-    <div class="contador">
-      <p>Total de confirmações: <span id="totalConfirmados">0</span></p>
-      <p>Total de pessoas (incluindo acompanhantes): <span id="totalPessoas">0</span></p>
-    </div>
-
-    <button id="baixarExcel">📥 Baixar lista (Excel)</button>
-    <button onclick="window.location.href='index.html'">Voltar</button>
+    <a href="index.html" class="voltar">⬅ Voltar ao site</a>
   </div>
 
-  <!-- Firebase + Excel -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getFirestore, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      query, 
+      orderBy, 
+      deleteDoc, 
+      doc 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+    import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
 
+    const senhaCorreta = "avseg2025"; // 🔐 Defina a senha aqui
+
+    const senhaContainer = document.getElementById("senhaContainer");
+    const conteudo = document.getElementById("conteudo");
+    const entrarBtn = document.getElementById("entrarBtn");
+    const senhaInput = document.getElementById("senhaInput");
+    const erroSenha = document.getElementById("erroSenha");
+
+    entrarBtn.addEventListener("click", () => {
+      if (senhaInput.value === senhaCorreta) {
+        senhaContainer.style.display = "none";
+        conteudo.style.display = "block";
+        carregarConfirmacoes();
+      } else {
+        erroSenha.style.display = "block";
+      }
+    });
+
+    // Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
       authDomain: "avseg-confraternizacao.firebaseapp.com",
@@ -124,90 +221,65 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const lista = document.getElementById('lista');
-    const totalConfirmados = document.getElementById('totalConfirmados');
+    const tabela = document.getElementById('tabela');
+    const contador = document.getElementById('contador');
     const totalPessoas = document.getElementById('totalPessoas');
-    const painel = document.getElementById('painel');
-    const login = document.getElementById('login');
-    const senhaInput = document.getElementById('senha');
-    const entrarBtn = document.getElementById('entrarBtn');
-    const erro = document.getElementById('erro');
     const baixarExcel = document.getElementById('baixarExcel');
 
-    const SENHA_CORRETA = "avseg2025";
-    let dadosConfirmados = [];
-
-    entrarBtn.addEventListener("click", () => {
-      const senha = senhaInput.value.trim();
-      if (senha === SENHA_CORRETA) {
-        login.style.display = "none";
-        painel.style.display = "block";
-        carregarConfirmacoes();
-      } else {
-        erro.textContent = "Senha incorreta. Tente novamente.";
-      }
-    });
-
     async function carregarConfirmacoes() {
-      try {
-        const q = query(collection(db, "confirmados"), orderBy("data", "desc"));
-        const querySnapshot = await getDocs(q);
+      const q = query(collection(db, "confirmados"), orderBy("data", "desc"));
+      const snapshot = await getDocs(q);
 
-        lista.innerHTML = "";
-        let total = 0;
-        let totalComAcompanhantes = 0;
-        dadosConfirmados = [];
+      tabela.innerHTML = '';
+      let total = 0;
+      let totalGeral = 0;
+      const dadosExportar = [];
 
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
-          const nome = data.nome || "-";
-          const telefone = data.telefone || "-";
-          const acompanhante = data.acompanhante === "Sim"
-            ? `Sim (${data.nomeAcompanhante || "sem nome"})`
-            : "Não";
+      snapshot.forEach(docSnap => {
+        const dados = docSnap.data();
+        total++;
+        totalGeral += (dados.acompanhante === 'sim' ? 2 : 1);
 
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${nome}</td>
-            <td>${telefone}</td>
-            <td>${acompanhante}</td>
-          `;
-          lista.appendChild(row);
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${dados.nome}</td>
+          <td>${dados.telefone}</td>
+          <td>${dados.acompanhante === 'sim' ? 'Sim' : 'Não'}</td>
+          <td>${dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-'}</td>
+          <td>${new Date(dados.data).toLocaleString('pt-BR')}</td>
+          <td><button class="btn-excluir" data-id="${docSnap.id}">Excluir</button></td>
+        `;
+        tabela.appendChild(tr);
 
-          total++;
-          totalComAcompanhantes += (data.acompanhante === "Sim") ? 2 : 1;
-
-          dadosConfirmados.push({
-            Nome: nome,
-            Telefone: telefone,
-            Acompanhante: acompanhante
-          });
+        dadosExportar.push({
+          Nome: dados.nome,
+          Telefone: dados.telefone,
+          "Acompanhante?": dados.acompanhante === 'sim' ? 'Sim' : 'Não',
+          "Nome do acompanhante": dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-',
+          Data: new Date(dados.data).toLocaleString('pt-BR')
         });
+      });
 
-        totalConfirmados.textContent = total;
-        totalPessoas.textContent = totalComAcompanhantes;
+      contador.textContent = total;
+      totalPessoas.textContent = totalGeral;
 
-        if (total === 0) {
-          lista.innerHTML = "<tr><td colspan='3'>Nenhuma confirmação ainda.</td></tr>";
-        }
+      document.querySelectorAll('.btn-excluir').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = btn.getAttribute('data-id');
+          if (confirm('Tem certeza que deseja excluir esta confirmação?')) {
+            await deleteDoc(doc(db, "confirmados", id));
+            carregarConfirmacoes();
+          }
+        });
+      });
 
-      } catch (error) {
-        console.error("Erro ao carregar dados:", error);
-        lista.innerHTML = "<tr><td colspan='3'>Erro ao carregar confirmações.</td></tr>";
-      }
+      baixarExcel.onclick = () => {
+        const ws = XLSX.utils.json_to_sheet(dadosExportar);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Confirmações");
+        XLSX.writeFile(wb, "confirmacoes_AVSEG_2025.xlsx");
+      };
     }
-
-    baixarExcel.addEventListener("click", () => {
-      if (dadosConfirmados.length === 0) {
-        alert("Nenhum dado para exportar!");
-        return;
-      }
-
-      const planilha = XLSX.utils.json_to_sheet(dadosConfirmados);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, planilha, "Confirmações");
-      XLSX.writeFile(wb, "confirmacoes_avseg2025.xlsx");
-    });
   </script>
 </body>
 </html>
