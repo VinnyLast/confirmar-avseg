@@ -196,108 +196,173 @@ input, select {
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { 
-      getFirestore, 
-      collection, 
-      getDocs, 
-      query, 
-      orderBy, 
-      deleteDoc, 
-      doc 
-    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-    import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { 
+  getFirestore, 
+  collection, 
+  getDocs, 
+  query, 
+  orderBy, 
+  deleteDoc, 
+  doc,
+  limit,
+  startAfter
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    const senhaCorreta = "avseg2025"; // 🔐 Defina a senha aqui
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
 
-    const senhaContainer = document.getElementById("senhaContainer");
-    const conteudo = document.getElementById("conteudo");
-    const entrarBtn = document.getElementById("entrarBtn");
-    const senhaInput = document.getElementById("senhaInput");
-    const erroSenha = document.getElementById("erroSenha");
+const senhaCorreta = "avseg2025";
 
-    entrarBtn.addEventListener("click", () => {
-      if (senhaInput.value === senhaCorreta) {
-        senhaContainer.style.display = "none";
-        conteudo.style.display = "block";
-        carregarConfirmacoes();
-      } else {
-        erroSenha.style.display = "block";
-      }
+const senhaContainer = document.getElementById("senhaContainer");
+const conteudo = document.getElementById("conteudo");
+const entrarBtn = document.getElementById("entrarBtn");
+const senhaInput = document.getElementById("senhaInput");
+const erroSenha = document.getElementById("erroSenha");
+
+entrarBtn.addEventListener("click", () => {
+  if (senhaInput.value === senhaCorreta) {
+    senhaContainer.style.display = "none";
+    conteudo.style.display = "block";
+    iniciarCarregamento();
+  } else {
+    erroSenha.style.display = "block";
+  }
+});
+
+
+// 🔥 FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
+  authDomain: "avseg-confraternizacao.firebaseapp.com",
+  projectId: "avseg-confraternizacao",
+  storageBucket: "avseg-confraternizacao.appspot.com",
+  messagingSenderId: "1022261557627",
+  appId: "1:1022261557627:web:ef69e37be5c367411665de"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tabela = document.getElementById('tabela');
+const contador = document.getElementById('contador');
+const totalPessoas = document.getElementById('totalPessoas');
+const baixarExcel = document.getElementById('baixarExcel');
+
+// ===============================
+// 🔥 PAGINAÇÃO DO FIRESTORE
+// ===============================
+let ultimoDocumento = null;
+let carregando = false;
+let acabou = false;
+let dadosExportar = [];
+
+function iniciarCarregamento() {
+  carregarPagina(); // Carrega a primeira página
+
+  window.addEventListener("scroll", () => {
+    const pertoDoFim = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
+
+    if (pertoDoFim && !carregando && !acabou) {
+      carregarPagina();
+    }
+  });
+}
+
+async function carregarPagina() {
+  carregando = true;
+
+  let q = query(
+    collection(db, "confirmados"),
+    orderBy("data", "desc"),
+    limit(25)
+  );
+
+  if (ultimoDocumento) {
+    q = query(
+      collection(db, "confirmados"),
+      orderBy("data", "desc"),
+      startAfter(ultimoDocumento),
+      limit(25)
+    );
+  }
+
+  const snapshot = await getDocs(q);
+
+  if (snapshot.empty) {
+    acabou = true;
+    return;
+  }
+
+  snapshot.forEach(docSnap => {
+    const dados = docSnap.data();
+
+    // soma total
+    dadosExportar.push({
+      Nome: dados.nome,
+      Telefone: dados.telefone,
+      "Acompanhante?": dados.acompanhante === 'sim' ? 'Sim' : 'Não',
+      "Nome do acompanhante": dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-',
+      Data: new Date(dados.data).toLocaleString('pt-BR')
     });
 
-    // Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
-      authDomain: "avseg-confraternizacao.firebaseapp.com",
-      projectId: "avseg-confraternizacao",
-      storageBucket: "avseg-confraternizacao.appspot.com",
-      messagingSenderId: "1022261557627",
-      appId: "1:1022261557627:web:ef69e37be5c367411665de"
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${dados.nome}</td>
+      <td>${dados.telefone}</td>
+      <td>${dados.acompanhante === 'sim' ? 'Sim' : 'Não'}</td>
+      <td>${dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-'}</td>
+      <td>${new Date(dados.data).toLocaleString('pt-BR')}</td>
+      <td><button class="btn-excluir" data-id="${docSnap.id}">Excluir</button></td>
+    `;
+    tabela.appendChild(tr);
+  });
+
+  ultimoDocumento = snapshot.docs[snapshot.docs.length - 1];
+
+  atualizarTotais();
+
+  carregarEventosExcluir();
+
+  carregando = false;
+}
+
+// ===============================
+// 🔥 ATUALIZAR TOTALIZADORES
+// ===============================
+function atualizarTotais() {
+  contador.textContent = dadosExportar.length;
+  totalPessoas.textContent = dadosExportar.reduce((acc, item) => {
+    return acc + (item["Acompanhante?"] === "Sim" ? 2 : 1);
+  }, 0);
+}
+
+
+// ===============================
+// 🔥 EXCLUIR REGISTROS
+// ===============================
+function carregarEventosExcluir() {
+  document.querySelectorAll('.btn-excluir').forEach(btn => {
+    btn.onclick = async () => {
+      const id = btn.getAttribute("data-id");
+      if (confirm("Tem certeza que deseja excluir esta confirmação?")) {
+        await deleteDoc(doc(db, "confirmados", id));
+        location.reload(); // Recarrega tudo rapidamente
+      }
     };
+  });
+}
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
 
-    const tabela = document.getElementById('tabela');
-    const contador = document.getElementById('contador');
-    const totalPessoas = document.getElementById('totalPessoas');
-    const baixarExcel = document.getElementById('baixarExcel');
+// ===============================
+// 🔥 EXPORTAR EXCEL
+// ===============================
+baixarExcel.onclick = () => {
+  const ws = XLSX.utils.json_to_sheet(dadosExportar);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Confirmações");
+  XLSX.writeFile(wb, "confirmacoes_AVSEG_2025.xlsx");
+};
+</script>
 
-    async function carregarConfirmacoes() {
-      const q = query(collection(db, "confirmados"), orderBy("data", "desc"));
-      const snapshot = await getDocs(q);
-
-      tabela.innerHTML = '';
-      let total = 0;
-      let totalGeral = 0;
-      const dadosExportar = [];
-
-      snapshot.forEach(docSnap => {
-        const dados = docSnap.data();
-        total++;
-        totalGeral += (dados.acompanhante === 'sim' ? 2 : 1);
-
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${dados.nome}</td>
-          <td>${dados.telefone}</td>
-          <td>${dados.acompanhante === 'sim' ? 'Sim' : 'Não'}</td>
-          <td>${dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-'}</td>
-          <td>${new Date(dados.data).toLocaleString('pt-BR')}</td>
-          <td><button class="btn-excluir" data-id="${docSnap.id}">Excluir</button></td>
-        `;
-        tabela.appendChild(tr);
-
-        dadosExportar.push({
-          Nome: dados.nome,
-          Telefone: dados.telefone,
-          "Acompanhante?": dados.acompanhante === 'sim' ? 'Sim' : 'Não',
-          "Nome do acompanhante": dados.acompanhante === 'sim' ? (dados.nomeAcompanhante || '-') : '-',
-          Data: new Date(dados.data).toLocaleString('pt-BR')
-        });
-      });
-
-      contador.textContent = total;
-      totalPessoas.textContent = totalGeral;
-
-      document.querySelectorAll('.btn-excluir').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const id = btn.getAttribute('data-id');
-          if (confirm('Tem certeza que deseja excluir esta confirmação?')) {
-            await deleteDoc(doc(db, "confirmados", id));
-            carregarConfirmacoes();
-          }
-        });
-      });
-
-      baixarExcel.onclick = () => {
-        const ws = XLSX.utils.json_to_sheet(dadosExportar);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Confirmações");
-        XLSX.writeFile(wb, "confirmacoes_AVSEG_2025.xlsx");
-      };
-    }
-  </script>
 </body>
 </html>
