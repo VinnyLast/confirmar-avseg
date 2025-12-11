@@ -1,208 +1,319 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confraternização AVSEG 2025</title>
+  <link rel="icon" href="favicon.png">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confraternização AVSEG 2025</title>
+  <style>
+@font-face {
+  font-family: 'LemonMilk';
+  src: url('fonts/LEMONMILK-Bold.otf') format('opentype');
+  font-weight: bold;
+}
+h1, h2, h3, button {
+  font-family: 'LemonMilk', sans-serif;
+}
+input, select {
+  font-family: inherit;
+}
+</style>
 
-    <!-- Fonte LEMON MILK -->
-    <style>
-        @font-face {
-            font-family: "LemonMilk";
-            src: url("LEMONMILK-Bold.otf") format("opentype");
-        }
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #000, #ffd60a);
+    color: white;
+    margin: 0;
+    padding: 20px 15px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
 
-        body {
-            font-family: Arial, sans-serif;
-            background: #0f0f0f;
-            color: white;
-            padding: 20px;
-            text-align: center;
-        }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+  }
 
-        h1 {
-            font-family: "LemonMilk", sans-serif;
-            font-size: 32px;
-            margin-top: 10px;
-        }
+  header img {
+    height: 55px;
+  }
 
-        .container {
-            max-width: 420px;
-            margin: auto;
-            background: #1b1b1b;
-            padding: 20px;
-            border-radius: 12px;
-        }
+  h1 {
+    margin: 0;
+    font-size: 1.9rem;
+    text-align: center;
+    line-height: 1.2;
+  }
 
-        input, select {
-            width: 92%;
-            padding: 10px;
-            margin-top: 10px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-        }
+  form {
+    width: 100%;
+    max-width: 380px;
+    background: rgba(255, 255, 255, 0.13);
+    padding: 22px 20px;
+    border-radius: 14px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  }
 
-        button {
-            width: 95%;
-            background: #d4af37;
-            color: black;
-            border: none;
-            padding: 12px;
-            margin-top: 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+  input, select {
+    width: 100%;
+    padding: 13px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    box-sizing: border-box;
+  }
 
-        button:disabled {
-            background: gray;
-            cursor: not-allowed;
-        }
+  select {
+    background: #fff;
+    color: #000;
+  }
 
-        /* BOTÃO SECRETO (invisível) */
-        .secret-btn {
-            position: fixed;
-            top: 5px;
-            right: 5px;
-            width: 30px;
-            height: 30px;
-            opacity: 0;
-            cursor: pointer;
-            z-index: 999;
-        }
-    </style>
+  button {
+    margin-top: 18px;
+    background-color: #ffd60a;
+    color: #000;
+    border: none;
+    padding: 14px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    font-size: 1.1rem;
+    transition: 0.25s;
+  }
+
+  button:hover {
+    background-color: #ffea00;
+    transform: scale(1.03);
+  }
+
+  .msg {
+    text-align: center;
+    margin-top: 18px;
+    font-size: 1rem;
+    min-height: 22px;
+  }
+
+  .admin-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(255,255,255,0.18);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    opacity: 0.35;
+    transition: 0.3s;
+  }
+
+  .admin-btn:hover {
+    opacity: 0.9;
+    background: rgba(255,255,255,0.28);
+  }
+
+  /* Ajustes específicos para celular */
+  @media (max-width: 420px) {
+    h1 {
+      font-size: 1.6rem;
+    }
+
+    header img {
+      height: 48px;
+    }
+
+    form {
+      padding: 20px 18px;
+    }
+
+    input, select {
+      padding: 12px;
+    }
+
+    button {
+      font-size: 1rem;
+      padding: 12px;
+    }
+  }
+</style>
+
 </head>
 <body>
+  <header style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px;">
+  <img src="logo.png" alt="Logo AVSEG" style="height: 60px;">
+  <h1>Confraternização AVSEG 2025</h1>
+</header>
 
-    <!-- Botão invisível para admin -->
-    <div class="secret-btn" onclick="window.location.href='admin.html'"></div>
+  <button class="admin-btn" title="Acesso restrito" onclick="window.location.href='admin.html'">⚙️</button>
 
-    <img src="logo.png" width="120">
-    <h1>Confraternização AVSEG 2025</h1>
+  <form id="form">
+  <input type="text" id="nome" placeholder="Seu nome completo" required>
+  
+  <input 
+    type="tel" 
+    id="telefone" 
+    placeholder="DDD + número (apenas números)" 
+    maxlength="11" 
+    required 
+    pattern="\d{10,11}"
+  >
 
-    <div class="container">
-        <h2>Confirme sua presença</h2>
+  <label for="acompanhante">Vai levar acompanhante?</label>
+  <select id="acompanhante" required>
+    <option value="">Selecione</option>
+    <option value="não">Não</option>
+    <option value="sim">Sim</option>
+  </select>
 
-        <input type="text" id="name" placeholder="Seu nome completo">
+  <input 
+    type="text" 
+    id="nomeAcompanhante" 
+    placeholder="Nome do acompanhante" 
+    style="display:none;"
+  >
 
-        <input type="text" id="phone" placeholder="Seu WhatsApp (somente números)" maxlength="11">
+  <button type="submit">Confirmar presença</button>
+</form>
 
-        <select id="acompanhanteSelect" onchange="toggleAcompanhante()">
-            <option value="nao">Vai levar acompanhante?</option>
-            <option value="nao">Não</option>
-            <option value="sim">Sim</option>
-        </select>
+<p class="msg" id="mensagem"></p>
 
-        <input type="text" id="acompanhanteNome" placeholder="Nome do acompanhante" style="display:none;">
+<script type="module">
 
-        <button id="confirmButton" onclick="sendConfirmation()">Confirmar Presença</button>
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getFirestore, 
+    collection, 
+    addDoc, 
+    getDocs, 
+    query, 
+    where,
+    getDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        <p id="status" style="margin-top: 15px; font-size: 14px;"></p>
-    </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
+    authDomain: "avseg-confraternizacao.firebaseapp.com",
+    projectId: "avseg-confraternizacao",
+    storageBucket: "avseg-confraternizacao.appspot.com",
+    messagingSenderId: "1022261557627",
+    appId: "1:1022261557627:web:ef69e37be5c367411665de"
+  };
 
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    <script>
-        const firebaseConfig = {
-            apiKey: "SUA-API",
-            authDomain: "avseg-confraternizacao.firebaseapp.com",
-            projectId: "avseg-confraternizacao",
-            storageBucket: "avseg-confraternizacao.appspot.com",
-            messagingSenderId: "",
-            appId: ""
-        };
+  const form = document.getElementById('form');
+  const msg = document.getElementById('mensagem');
+  const acompanhanteSelect = document.getElementById('acompanhante');
+  const nomeAcompanhanteInput = document.getElementById('nomeAcompanhante');
 
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
+  // Mostrar campo do acompanhante só se escolher "Sim"
+  acompanhanteSelect.addEventListener('change', () => {
+    if (acompanhanteSelect.value === 'sim') {
+      nomeAcompanhanteInput.style.display = 'block';
+      nomeAcompanhanteInput.required = true;
+    } else {
+      nomeAcompanhanteInput.style.display = 'none';
+      nomeAcompanhanteInput.required = false;
+      nomeAcompanhanteInput.value = '';
+    }
+  });
 
-        // Mostrar campo do acompanhante quando necessário
-        function toggleAcompanhante() {
-            const select = document.getElementById("acompanhanteSelect");
-            const field = document.getElementById("acompanhanteNome");
+  // 🔥 Função para verificar se o formulário está ativo
+  async function verificarFormularioAtivo() {
+    const ref = doc(db, "config", "controle");
+    const snap = await getDoc(ref);
 
-            if (select.value === "sim") {
-                field.style.display = "block";
-            } else {
-                field.style.display = "none";
-                field.value = "";
-            }
-        }
+    if (snap.exists()) {
+      return snap.data().formularioAtivo !== false;
+    }
 
-        // Função que formata o telefone apenas na lista
-        function formatPhone(phone) {
-            return phone.replace(/^(\d{2})(\d{5})(\d{4})$/, "($1) $2-$3");
-        }
+    // Segurança: se não existir o doc, bloqueia
+    return false;
+  }
 
-        // Verifica no Firestore se novas confirmações estão habilitadas
-        async function checkEnabled() {
-            const docRef = db.collection("config").doc("settings");
-            const snap = await docRef.get();
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-            if (snap.exists && snap.data().confirmationsEnabled === false) {
-                document.getElementById("confirmButton").disabled = true;
-                document.getElementById("status").innerText = "As confirmações estão desativadas no momento.";
-            }
-        }
+    // 🔥 Verifica no Firestore se o formulário está liberado
+    const ativo = await verificarFormularioAtivo();
+    if (!ativo) {
+      msg.textContent = "⚠️ As confirmações estão encerradas no momento.";
+      return;
+    }
 
-        checkEnabled();
+    let nome = document.getElementById('nome').value.trim();
+    let telefone = document.getElementById('telefone').value.trim().replace(/\D/g, '');
+    const acompanhante = acompanhanteSelect.value;
+    const nomeAcompanhante = nomeAcompanhanteInput.value.trim();
 
-        async function sendConfirmation() {
-            const name = document.getElementById("name").value.trim();
-            const phone = document.getElementById("phone").value.trim();
-            const acompanhante = document.getElementById("acompanhanteSelect").value;
-            const nomeAcompanhante = document.getElementById("acompanhanteNome").value.trim();
+    if (!nome || !telefone) {
+      msg.textContent = 'Por favor, preencha todos os campos obrigatórios.';
+      return;
+    }
 
-            const status = document.getElementById("status");
+    // Formatar telefone (xx) xxxxx-xxxx
+    if (telefone.length === 11) {
+      telefone = `(${telefone.slice(0, 2)}) ${telefone.slice(2, 7)}-${telefone.slice(7)}`;
+    } else if (telefone.length === 10) {
+      telefone = `(${telefone.slice(0, 2)}) ${telefone.slice(2, 6)}-${telefone.slice(6)}`;
+    } else {
+      msg.textContent = 'Número inválido. Digite um número de celular válido.';
+      return;
+    }
 
-            status.innerText = "";
+    // Impedir duplicatas (nome OU telefone já confirmados)
+    const q = query(collection(db, "confirmados"), where("nome", "==", nome));
+    const q2 = query(collection(db, "confirmados"), where("telefone", "==", telefone));
 
-            if (name.length < 3) {
-                status.innerText = "Digite um nome válido.";
-                return;
-            }
+    const [snap1, snap2] = await Promise.all([getDocs(q), getDocs(q2)]);
 
-            if (!/^\d{10,11}$/.test(phone)) {
-                status.innerText = "Digite um telefone válido (somente números).";
-                return;
-            }
+    if (!snap1.empty || !snap2.empty) {
+      msg.textContent = "❗ Você já confirmou presença anteriormente.";
+      return;
+    }
 
-            if (acompanhante === "sim" && nomeAcompanhante.length < 3) {
-                status.innerText = "Digite o nome do acompanhante.";
-                return;
-            }
+    // Verificação do acompanhante
+    if (acompanhante === 'sim' && !nomeAcompanhante) {
+      msg.textContent = 'Por favor, informe o nome do acompanhante.';
+      return;
+    }
 
-            // Bloqueia duplicados
-            const q = await db.collection("confirmacoes")
-                .where("phone", "==", phone)
-                .get();
+    try {
+      await addDoc(collection(db, "confirmados"), {
+        nome,
+        telefone,
+        acompanhante,
+        nomeAcompanhante: nomeAcompanhante || null,
+        data: new Date().toISOString()
+      });
 
-            const q2 = await db.collection("confirmacoes")
-                .where("name", "==", name)
-                .get();
+      msg.textContent = `🎉 Obrigado, ${nome}! Sua presença foi confirmada.`;
+      form.reset();
+      nomeAcompanhanteInput.style.display = 'none';
 
-            if (!q.empty || !q2.empty) {
-                status.innerText = "Você já confirmou sua presença.";
-                return;
-            }
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      msg.textContent = "❌ Ocorreu um erro ao confirmar. Tente novamente.";
+    }
+  });
 
-            const formattedPhone = formatPhone(phone);
+</script>
 
-            await db.collection("confirmacoes").add({
-                name,
-                phone: formattedPhone,
-                acompanhante: nomeAcompanhante || null,
-                timestamp: Date.now()
-            });
 
-            status.innerText = "Presença confirmada com sucesso!";
-            document.getElementById("name").value = "";
-            document.getElementById("phone").value = "";
-            document.getElementById("acompanhanteSelect").value = "nao";
-            toggleAcompanhante();
-        }
-    </script>
 </body>
 </html>
