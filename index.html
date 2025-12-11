@@ -191,6 +191,7 @@ input, select {
 <p class="msg" id="mensagem"></p>
 
 <script type="module">
+
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
   import { 
     getFirestore, 
@@ -198,7 +199,9 @@ input, select {
     addDoc, 
     getDocs, 
     query, 
-    where 
+    where,
+    getDoc,
+    doc
   } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -230,8 +233,28 @@ input, select {
     }
   });
 
+  // 🔥 Função para verificar se o formulário está ativo
+  async function verificarFormularioAtivo() {
+    const ref = doc(db, "config", "controle");
+    const snap = await getDoc(ref);
+
+    if (snap.exists()) {
+      return snap.data().formularioAtivo !== false;
+    }
+
+    // Segurança: se não existir o doc, bloqueia
+    return false;
+  }
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    // 🔥 Verifica no Firestore se o formulário está liberado
+    const ativo = await verificarFormularioAtivo();
+    if (!ativo) {
+      msg.textContent = "⚠️ As confirmações estão encerradas no momento.";
+      return;
+    }
 
     let nome = document.getElementById('nome').value.trim();
     let telefone = document.getElementById('telefone').value.trim().replace(/\D/g, '');
@@ -254,16 +277,11 @@ input, select {
     }
 
     // Impedir duplicatas (nome OU telefone já confirmados)
-    const q = query(
-      collection(db, "confirmados"),
-      where("nome", "==", nome)
-    );
-    const q2 = query(
-      collection(db, "confirmados"),
-      where("telefone", "==", telefone)
-    );
+    const q = query(collection(db, "confirmados"), where("nome", "==", nome));
+    const q2 = query(collection(db, "confirmados"), where("telefone", "==", telefone));
 
     const [snap1, snap2] = await Promise.all([getDocs(q), getDocs(q2)]);
+
     if (!snap1.empty || !snap2.empty) {
       msg.textContent = "❗ Você já confirmou presença anteriormente.";
       return;
@@ -287,12 +305,15 @@ input, select {
       msg.textContent = `🎉 Obrigado, ${nome}! Sua presença foi confirmada.`;
       form.reset();
       nomeAcompanhanteInput.style.display = 'none';
+
     } catch (error) {
       console.error("Erro ao salvar:", error);
       msg.textContent = "❌ Ocorreu um erro ao confirmar. Tente novamente.";
     }
   });
+
 </script>
+
 
 </body>
 </html>
