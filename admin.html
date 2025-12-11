@@ -5,7 +5,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel Admin - Confraternização AVSEG 2025</title>
-  <style>
+
+<style>
 @font-face {
   font-family: 'LemonMilk';
   src: url('fonts/LEMONMILK-Bold.otf') format('opentype');
@@ -19,11 +20,11 @@ h1 {
 
 /* Inputs e selects mantêm a fonte padrão */
 input, select {
-  font-family: inherit; /* herda a fonte padrão do body */
+  font-family: inherit;
 }
-
 </style>
-  <style>
+
+<style>
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #000, #ffd60a);
@@ -161,7 +162,9 @@ input, select {
     }
   </style>
 </head>
+
 <body>
+
   <div id="senhaContainer">
     <h2>🔒 Acesso restrito</h2>
     <input type="password" id="senhaInput" placeholder="Digite a senha">
@@ -170,7 +173,30 @@ input, select {
   </div>
 
   <div id="conteudo" style="display:none;">
-    <h1> Painel de Confirmações - AVSEG 2025</h1>
+    <h1>Painel de Confirmações - AVSEG 2025</h1>
+
+    <!-- 🔥 NOVO BLOCO: CONTROLE DO FORMULÁRIO -->
+    <div id="formStatusBox" style="
+      background: rgba(255,255,255,0.15);
+      padding: 15px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      display:inline-block;
+    ">
+      <strong>Status do formulário:</strong> 
+      <span id="statusFormulario">Carregando...</span>
+      <br><br>
+      <button id="toggleFormularioBtn" style="
+        background:#ffd60a; 
+        padding:10px 20px;
+        border:none;
+        border-radius:8px; 
+        font-weight:bold;
+        cursor:pointer;
+      ">
+        Alternar
+      </button>
+    </div>
 
     <div id="totais">
       ✅ Total de confirmações: <span id="contador">0</span><br>
@@ -195,7 +221,8 @@ input, select {
     <a href="index.html" class="voltar">⬅ Voltar ao site</a>
   </div>
 
-  <script type="module">
+<script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getFirestore, 
@@ -206,7 +233,9 @@ import {
   deleteDoc, 
   doc,
   limit,
-  startAfter
+  startAfter,
+  getDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs";
@@ -224,13 +253,13 @@ entrarBtn.addEventListener("click", () => {
     senhaContainer.style.display = "none";
     conteudo.style.display = "block";
     iniciarCarregamento();
+    carregarStatusFormulario();
   } else {
     erroSenha.style.display = "block";
   }
 });
 
-
-// 🔥 FIREBASE
+// Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDvKQsFMVbpsA0jGnPSO37tRp2bDP8dZFE",
   authDomain: "avseg-confraternizacao.firebaseapp.com",
@@ -248,16 +277,51 @@ const contador = document.getElementById('contador');
 const totalPessoas = document.getElementById('totalPessoas');
 const baixarExcel = document.getElementById('baixarExcel');
 
-// ===============================
-// 🔥 PAGINAÇÃO DO FIRESTORE
-// ===============================
+// =======================================
+// 🔥 CONTROLE DO FORMULÁRIO
+// =======================================
+const statusFormulario = document.getElementById("statusFormulario");
+const toggleFormularioBtn = document.getElementById("toggleFormularioBtn");
+
+async function carregarStatusFormulario() {
+  const ref = doc(db, "config", "formulario");
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, { ativo: true });
+    statusFormulario.textContent = "Ativado";
+    toggleFormularioBtn.textContent = "Desativar";
+    return;
+  }
+
+  const ativo = snap.data().ativo;
+  statusFormulario.textContent = ativo ? "Ativado" : "Desativado";
+  toggleFormularioBtn.textContent = ativo ? "Desativar" : "Ativar";
+}
+
+toggleFormularioBtn.addEventListener("click", async () => {
+  const ref = doc(db, "config", "formulario");
+  const snap = await getDoc(ref);
+  const ativoAtual = snap.data().ativo;
+
+  await setDoc(ref, { ativo: !ativoAtual });
+
+  statusFormulario.textContent = !ativoAtual ? "Ativado" : "Desativado";
+  toggleFormularioBtn.textContent = !ativoAtual ? "Desativar" : "Ativar";
+
+  alert("Status atualizado!");
+});
+
+// =======================================
+// 🔥 PAGINAÇÃO FIRESTORE
+// =======================================
 let ultimoDocumento = null;
 let carregando = false;
 let acabou = false;
 let dadosExportar = [];
 
 function iniciarCarregamento() {
-  carregarPagina(); // Carrega a primeira página
+  carregarPagina();
 
   window.addEventListener("scroll", () => {
     const pertoDoFim = window.innerHeight + window.scrollY >= document.body.offsetHeight - 200;
@@ -296,7 +360,6 @@ async function carregarPagina() {
   snapshot.forEach(docSnap => {
     const dados = docSnap.data();
 
-    // soma total
     dadosExportar.push({
       Nome: dados.nome,
       Telefone: dados.telefone,
@@ -320,48 +383,47 @@ async function carregarPagina() {
   ultimoDocumento = snapshot.docs[snapshot.docs.length - 1];
 
   atualizarTotais();
-
   carregarEventosExcluir();
 
   carregando = false;
 }
 
-// ===============================
-// 🔥 ATUALIZAR TOTALIZADORES
-// ===============================
+// =======================================
+// 🔥 TOTALIZADORES
+// =======================================
 function atualizarTotais() {
   contador.textContent = dadosExportar.length;
+
   totalPessoas.textContent = dadosExportar.reduce((acc, item) => {
     return acc + (item["Acompanhante?"] === "Sim" ? 2 : 1);
   }, 0);
 }
 
-
-// ===============================
-// 🔥 EXCLUIR REGISTROS
-// ===============================
+// =======================================
+// 🔥 EXCLUSÃO
+// =======================================
 function carregarEventosExcluir() {
   document.querySelectorAll('.btn-excluir').forEach(btn => {
     btn.onclick = async () => {
       const id = btn.getAttribute("data-id");
       if (confirm("Tem certeza que deseja excluir esta confirmação?")) {
         await deleteDoc(doc(db, "confirmados", id));
-        location.reload(); // Recarrega tudo rapidamente
+        location.reload();
       }
     };
   });
 }
 
-
-// ===============================
+// =======================================
 // 🔥 EXPORTAR EXCEL
-// ===============================
+// =======================================
 baixarExcel.onclick = () => {
   const ws = XLSX.utils.json_to_sheet(dadosExportar);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "Confirmações");
   XLSX.writeFile(wb, "confirmacoes_AVSEG_2025.xlsx");
 };
+
 </script>
 
 </body>
